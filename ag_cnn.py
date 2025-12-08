@@ -7,7 +7,9 @@ class AttentionGate(nn.Module):
     def __init__(self, x_channels, g_channels, inter_channels=None):
         super().__init__()
         if inter_channels is None:
-            inter_channels = max(x_channels // 4, 1)  # smaller inter_channels to reduce params
+            inter_channels = max(
+                x_channels // 4, 1
+            )  # smaller inter_channels to reduce params
 
         self.theta = nn.Conv2d(x_channels, inter_channels, kernel_size=1, bias=False)
         self.psi = nn.Conv2d(g_channels, inter_channels, kernel_size=1, bias=False)
@@ -19,7 +21,7 @@ class AttentionGate(nn.Module):
         psi_g = self.psi(g)
 
         if psi_g.shape[2:] != theta_x.shape[2:]:
-            psi_g = F.interpolate(psi_g, size=theta_x.shape[2:], mode='bilinear')
+            psi_g = F.interpolate(psi_g, size=theta_x.shape[2:], mode="bilinear")
 
         f = self.relu(theta_x + psi_g)
         score = self.phi(f)
@@ -64,20 +66,20 @@ class AG_CNN(nn.Module):
             nn.Linear(32 + 16 + 6, 64),
             nn.ReLU(),
             nn.Dropout(dropout_p),
-            nn.Linear(64, num_classes)
+            nn.Linear(64, num_classes),
         )
 
     def forward(self, x):
-        x1 = self.conv1(x)     # (B,6,H,W)
+        x1 = self.conv1(x)  # (B,6,H,W)
         p1 = self.pool1(x1)
 
-        x2 = self.conv2(p1)    # (B,16,H,W)
+        x2 = self.conv2(p1)  # (B,16,H,W)
         p2 = self.pool2(x2)
 
-        x3 = self.conv3(p2)    # (B,32,H,W)
+        x3 = self.conv3(p2)  # (B,32,H,W)
         p3 = self.pool3(x3)
 
-        g = self.conv4(p3)     # (B,64,H,W)
+        g = self.conv4(p3)  # (B,64,H,W)
 
         out1, _ = self.att1(x3, g)
         out2, _ = self.att2(x2, g)

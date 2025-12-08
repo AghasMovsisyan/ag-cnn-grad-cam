@@ -28,13 +28,17 @@ class RadioDataset(Dataset):
                         print("Unknown error reading:", fullpath)
 
         if train:
-            self.transform = T.Compose([
-                T.ToTensor(),
-            ])
+            self.transform = T.Compose(
+                [
+                    T.ToTensor(),
+                ]
+            )
         else:
-            self.transform = T.Compose([
-                T.ToTensor(),
-            ])
+            self.transform = T.Compose(
+                [
+                    T.ToTensor(),
+                ]
+            )
 
     def __len__(self):
         return len(self.files)

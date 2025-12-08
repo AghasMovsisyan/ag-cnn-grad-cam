@@ -27,17 +27,19 @@ val_acc_h = []
 full_dataset = RadioDataset(DATA_DIR, train=True)
 total_size = len(full_dataset)
 train_size = int(total_size * 0.70)
-val_size   = int(total_size * 0.15)
-test_size  = total_size - train_size - val_size
+val_size = int(total_size * 0.15)
+test_size = total_size - train_size - val_size
 print("Sizes:", train_size, val_size, test_size)
 
 g = torch.Generator()
 g.manual_seed(42)
-train_ds, val_ds, test_ds = random_split(full_dataset, [train_size, val_size, test_size], generator=g)
+train_ds, val_ds, test_ds = random_split(
+    full_dataset, [train_size, val_size, test_size], generator=g
+)
 
 train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
-val_loader   = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
-test_loader  = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
+val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
+test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 
 model = AG_CNN(in_channels=3, num_classes=3).to(DEVICE)
@@ -64,7 +66,6 @@ for epoch in range(EPOCHS):
 
     train_acc = correct / total
 
-
     model.eval()
     total, correct = 0, 0
     with torch.no_grad():
@@ -83,19 +84,25 @@ for epoch in range(EPOCHS):
     for imgs, labels in val_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         for idx, (img, lbl) in enumerate(zip(imgs, labels)):
-            cam = grad_cam(model, img.unsqueeze(0), layer_name="conv3", save_all=False, output_dir="gradcam_outputs")
-
+            cam = grad_cam(
+                model,
+                img.unsqueeze(0),
+                layer_name="conv3",
+                save_all=False,
+                output_dir="gradcam_outputs",
+            )
 
     if len(val_acc_h) > ST_EPOCH:
-        change = val_acc_h[-1] - val_acc_h[-ST_EPOCH-1]
+        change = val_acc_h[-1] - val_acc_h[-ST_EPOCH - 1]
         if change < THRESHOLD:
             for g in optimizer.param_groups:
-                g['lr'] *= LR_CHANGE
+                g["lr"] *= LR_CHANGE
             print(f">>> Learning rate decayed to {optimizer.param_groups[0]['lr']:.6f}")
 
-    print(f"Epoch {epoch+1}/{EPOCHS} | Train Acc: {train_acc:.4f} | Val Acc: {val_acc:.4f}")
+    print(
+        f"Epoch {epoch+1}/{EPOCHS} | Train Acc: {train_acc:.4f} | Val Acc: {val_acc:.4f}"
+    )
     # print(f" De Gnaa: {de_gna_loss:.4f}, Ari DE: {loss:.4f}")
-
 
     if val_acc > best_val_acc:
         best_val_acc = val_acc
