@@ -9,7 +9,7 @@ class AttentionGate(nn.Module):
         if inter_channels is None:
             inter_channels = max(
                 x_channels // 4, 1
-            )  # smaller inter_channels to reduce params
+            )
 
         self.theta = nn.Conv2d(x_channels, inter_channels, kernel_size=1, bias=False)
         self.psi = nn.Conv2d(g_channels, inter_channels, kernel_size=1, bias=False)
@@ -56,12 +56,11 @@ class AG_CNN(nn.Module):
 
         self.conv4 = conv_block(32, 64)
 
-        # smaller inter_channels for attention gates
+
         self.att1 = AttentionGate(32, 64, inter_channels=8)
         self.att2 = AttentionGate(16, 64, inter_channels=4)
         self.att3 = AttentionGate(6, 64, inter_channels=2)
 
-        # Fully connected layer with Dropout
         self.fc = nn.Sequential(
             nn.Linear(32 + 16 + 6, 64),
             nn.ReLU(),
@@ -85,7 +84,7 @@ class AG_CNN(nn.Module):
         out2, _ = self.att2(x2, g)
         out3, _ = self.att3(x1, g)
 
-        # Flatten spatial dims and sum to reduce feature vector
+
         f1 = out1.flatten(2).sum(2)
         f2 = out2.flatten(2).sum(2)
         f3 = out3.flatten(2).sum(2)
@@ -96,9 +95,8 @@ class AG_CNN(nn.Module):
         return logits
 
 
-# ===== Testing the model with random input =====
 if __name__ == "__main__":
     input_tensor = torch.randn((8, 3, 50, 60))
     model = AG_CNN(num_classes=3)
     out = model(input_tensor)
-    print("Output shape:", out.shape)  # should be (8, 3)
+    print("Output shape:", out.shape)

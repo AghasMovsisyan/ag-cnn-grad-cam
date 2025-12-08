@@ -164,7 +164,6 @@ def grad_cam(
             )
             superimposed = cv2.addWeighted(image_np, 0.4, heatmap_img, 0.6, 0)
 
-            # Save images inside the new folder
             cv2.imwrite(
                 os.path.join(folder_name, f"gradcam_{GRADCAM_COUNTER}.jpg"),
                 superimposed,

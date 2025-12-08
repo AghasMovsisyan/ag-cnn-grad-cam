@@ -1,14 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
-import matplotlib.pyplot as plt
-import numpy as np
-
-from dataset import RadioDataset
-from ag_cnn import AG_CNN
-from grad_cam import grad_cam
+from src.dataset import RadioDataset
+from src.ag_cnn import AG_CNN
+from src.grad_cam import grad_cam
 
 DATA_DIR = "data/train"
 BATCH_SIZE = 8
@@ -39,7 +35,6 @@ train_ds, val_ds, test_ds = random_split(
 
 train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
-test_loader = DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
 
 
 model = AG_CNN(in_channels=3, num_classes=3).to(DEVICE)
@@ -66,13 +61,13 @@ for epoch in range(EPOCHS):
 
     train_acc = correct / total
 
+
     model.eval()
     total, correct = 0, 0
     with torch.no_grad():
         for imgs, labels in val_loader:
             imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
             logits = model(imgs)
-            de_gna_loss = criterion(logits, labels)
             preds = logits.argmax(1)
             correct += (preds == labels).sum().item()
             total += labels.size(0)
@@ -80,17 +75,18 @@ for epoch in range(EPOCHS):
     val_acc = correct / total
     val_acc_h.append(val_acc)
 
-    # --- Grad-CAM generation ---
+
     for imgs, labels in val_loader:
         imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
         for idx, (img, lbl) in enumerate(zip(imgs, labels)):
-            cam = grad_cam(
+            _ = grad_cam(
                 model,
                 img.unsqueeze(0),
                 layer_name="conv3",
                 save_all=False,
                 output_dir="gradcam_outputs",
             )
+
 
     if len(val_acc_h) > ST_EPOCH:
         change = val_acc_h[-1] - val_acc_h[-ST_EPOCH - 1]
@@ -102,24 +98,9 @@ for epoch in range(EPOCHS):
     print(
         f"Epoch {epoch+1}/{EPOCHS} | Train Acc: {train_acc:.4f} | Val Acc: {val_acc:.4f}"
     )
-    # print(f" De Gnaa: {de_gna_loss:.4f}, Ari DE: {loss:.4f}")
+
 
     if val_acc > best_val_acc:
         best_val_acc = val_acc
-        torch.save(model.state_dict(), "best_model.pth")
+        torch.save(model.state_dict(), "models/best_model.pth")
         print(">>> Saved best model")
-
-# --- Test evaluation ---
-print("\nEvaluating TEST SET...")
-model.eval()
-total, correct = 0, 0
-with torch.no_grad():
-    for imgs, labels in test_loader:
-        imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
-        logits = model(imgs)
-        preds = logits.argmax(1)
-        correct += (preds == labels).sum().item()
-        total += labels.size(0)
-
-test_acc = correct / total
-print(f"Final TEST Accuracy = {test_acc:.4f}")
