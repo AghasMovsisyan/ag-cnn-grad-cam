@@ -124,10 +124,10 @@ def grad_cam(
         folder_name = os.path.join(base_save_dir, f"cam_{GRADCAM_COUNTER}")
         os.makedirs(folder_name, exist_ok=True)
 
-        if print_shapes:
-            print(
-                f"[{name}] Activation: {activation.shape}, Gradient: {gradient.shape}"
-            )
+        # if print_shapes:
+        #     print(
+        #         f"[{name}] Activation: {activation.shape}, Gradient: {gradient.shape}"
+        #     )
 
         if len(activation.shape) != 4 or len(gradient.shape) != 4:
             print(f"Skipping layer {name} due to incompatible shape (not 4D).")
